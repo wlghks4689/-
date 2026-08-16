@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "사이 — 대화에서 시작되는 인연",
-  description: "프로필부터 기본 대화까지 무료인 소개팅 서비스 프로토타입",
+  title: "잘되면 밥한끼 — 돈 쓰기 전에, 대화부터",
+  description: "프로필 확인부터 채팅까지 무료인 따뜻하고 솔직한 소개팅 서비스",
   icons: {
     icon: "/favicon.svg",
     shortcut: "/favicon.svg",

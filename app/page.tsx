@@ -2,65 +2,35 @@
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
-type Profile = { name: string; birthYear: string; region: string; job: string; intro: string; photo: string };
-const emptyProfile: Profile = { name: "", birthYear: "", region: "", job: "", intro: "", photo: "" };
+type Provider = "kakao" | "google";
+type Profile = { name:string; birthYear:string; region:string; job:string; intro:string; photo:string };
+const emptyProfile: Profile = { name:"", birthYear:"", region:"", job:"", intro:"", photo:"" };
 
 export default function Home() {
-  const [mode, setMode] = useState<"login" | "signup">("signup");
-  const [screen, setScreen] = useState<"auth" | "edit" | "profile">("auth");
-  const [profile, setProfile] = useState<Profile>(emptyProfile);
-  const [error, setError] = useState("");
+  const [screen,setScreen] = useState<"auth"|"phone"|"edit"|"profile">("auth");
+  const [provider,setProvider] = useState<Provider|null>(null);
+  const [profile,setProfile] = useState<Profile>(emptyProfile);
+  const [phone,setPhone] = useState("");
+  const [code,setCode] = useState("");
+  const [sent,setSent] = useState(false);
+  const [error,setError] = useState("");
 
-  useEffect(() => {
-    const saved = localStorage.getItem("sai-demo-profile");
-    if (saved) { setProfile(JSON.parse(saved)); setScreen("profile"); }
-  }, []);
+  useEffect(()=>{ const saved=localStorage.getItem("meal-demo-account"); if(saved){const data=JSON.parse(saved);setProfile(data.profile||emptyProfile);setProvider(data.provider||null);setScreen(data.phoneVerified&&data.profile?.name?"profile":"auth");}},[]);
+  function socialLogin(selected:Provider){setProvider(selected);setError("");setScreen("phone");}
+  function requestCode(){if(!/^01[016789]\d{7,8}$/.test(phone.replaceAll("-",""))){setError("휴대전화 번호를 정확히 입력해 주세요.");return;}setSent(true);setError("");}
+  function verifyPhone(event:FormEvent){event.preventDefault();if(code!=="123456"){setError("데모 인증번호 123456을 입력해 주세요.");return;}setError("");setScreen(profile.name?"profile":"edit");}
+  function saveProfile(event:FormEvent){event.preventDefault();if(!profile.name||!profile.birthYear||!profile.region||!profile.intro){setError("필수 항목을 모두 채워 주세요.");return;}localStorage.setItem("meal-demo-account",JSON.stringify({provider,phoneVerified:true,phoneMasked:`${phone.slice(0,3)}-****-${phone.slice(-4)}`,profile}));setError("");setScreen("profile");}
+  function uploadPhoto(event:ChangeEvent<HTMLInputElement>){const file=event.target.files?.[0];if(!file)return;if(file.size>3*1024*1024){setError("사진은 3MB 이하로 선택해 주세요.");return;}const reader=new FileReader();reader.onload=()=>setProfile({...profile,photo:String(reader.result)});reader.readAsDataURL(file);}
+  function logout(){setScreen("auth");setProvider(null);setPhone("");setCode("");setSent(false);setError("");}
 
-  function authenticate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    if (!data.get("email") || String(data.get("password")).length < 8) { setError("이메일과 8자 이상의 비밀번호를 확인해 주세요."); return; }
-    setError(""); setScreen(profile.name ? "profile" : "edit");
-  }
-  function saveProfile(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    if (!profile.name || !profile.birthYear || !profile.region || !profile.intro) { setError("필수 항목을 모두 채워 주세요."); return; }
-    localStorage.setItem("sai-demo-profile", JSON.stringify(profile)); setError(""); setScreen("profile");
-  }
-  function uploadPhoto(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0]; if (!file) return;
-    if (file.size > 3 * 1024 * 1024) { setError("사진은 3MB 이하로 선택해 주세요."); return; }
-    const reader = new FileReader(); reader.onload = () => setProfile({ ...profile, photo: String(reader.result) }); reader.readAsDataURL(file);
-  }
-  function logout() { setScreen("auth"); setMode("login"); setError(""); }
-
-  return (
-    <main className="app-shell">
-      <section className="brand-panel">
-        <div className="brand-mark">사이</div>
-        <div className="hero-copy"><span className="eyebrow">대화에서 시작되는 인연</span><h1>마음이 오가는 데<br />가격표는 필요 없으니까.</h1><p>프로필도, 관심 표현도, 첫 대화도 무료예요.<br />천천히 알아가고 솔직하게 이어가세요.</p></div>
-        <div className="promise-list"><span>무료 프로필 열람</span><span>무료 대화 요청</span><span>무료 기본 채팅</span></div>
-      </section>
-      <section className="auth-panel">
-        <div className="mobile-brand"><b>사이</b><span>대화에서 시작되는 인연</span></div>
-        {screen === "auth" && <div className="auth-card">
-          <div className="step-label">01 · 시작하기</div><h2>{mode === "signup" ? "새로운 인연을 만나볼까요?" : "다시 만나 반가워요"}</h2><p className="subcopy">안전한 만남을 위해 이메일로 시작해요.</p>
-          <div className="mode-tabs"><button className={mode === "signup" ? "active" : ""} onClick={() => {setMode("signup");setError("")}}>회원가입</button><button className={mode === "login" ? "active" : ""} onClick={() => {setMode("login");setError("")}}>로그인</button></div>
-          <form onSubmit={authenticate}><label>이메일<input name="email" type="email" placeholder="hello@example.com" autoComplete="email" /></label><label>비밀번호<input name="password" type="password" placeholder="8자 이상 입력해 주세요" autoComplete={mode === "signup" ? "new-password" : "current-password"} /></label>{mode === "signup" && <label className="consent"><input required type="checkbox" /><span>만 18세 이상이며, 이용약관과 개인정보 처리방침에 동의합니다.</span></label>}{error && <p className="error">{error}</p>}<button className="primary" type="submit">{mode === "signup" ? "무료로 시작하기" : "로그인"}<span>→</span></button></form>
-          <div className="trust-note"><span>✓</span><p><b>핵심 대화 기능은 무료예요.</b><br />결제 여부가 추천이나 매칭 확률에 영향을 주지 않아요.</p></div>
-        </div>}
-        {screen === "edit" && <div className="auth-card profile-form"><div className="step-label">02 · 프로필 만들기</div><h2>{profile.name ? "프로필을 다듬어 볼까요?" : "당신을 조금 알려주세요"}</h2><p className="subcopy">나중에 언제든 수정할 수 있어요.</p>
-          <form onSubmit={saveProfile}><div className="photo-row"><label className="photo-upload">{profile.photo ? <img src={profile.photo} alt="프로필 미리보기" /> : <span>＋<small>사진 추가</small></span>}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadPhoto} /></label><p>얼굴이 잘 보이는 사진 1장<br /><small>JPG, PNG, WEBP · 최대 3MB</small></p></div>
-            <div className="two-col"><label>닉네임 *<input value={profile.name} onChange={e=>setProfile({...profile,name:e.target.value})} placeholder="예: 봄날" /></label><label>출생연도 *<input value={profile.birthYear} onChange={e=>setProfile({...profile,birthYear:e.target.value})} inputMode="numeric" placeholder="1995" /></label></div>
-            <label>활동 지역 *<select value={profile.region} onChange={e=>setProfile({...profile,region:e.target.value})}><option value="">선택해 주세요</option><option>서울</option><option>경기</option><option>인천</option><option>부산</option><option>대전</option><option>대구</option><option>광주</option><option>제주</option></select></label>
-            <label>하는 일<input value={profile.job} onChange={e=>setProfile({...profile,job:e.target.value})} placeholder="예: 브랜드 디자이너" /></label><label>한 줄 소개 *<textarea maxLength={120} value={profile.intro} onChange={e=>setProfile({...profile,intro:e.target.value})} placeholder="좋아하는 것과 요즘 관심사를 들려주세요." /><small className="counter">{profile.intro.length}/120</small></label>{error && <p className="error">{error}</p>}<button className="primary" type="submit">프로필 저장하기<span>→</span></button></form>
-        </div>}
-        {screen === "profile" && <div className="auth-card"><div className="profile-top"><div><div className="step-label">내 프로필</div><h2>반가워요, {profile.name}님</h2></div><button className="text-button" onClick={logout}>로그아웃</button></div><p className="subcopy">이 프로필로 새로운 인연을 만날 준비가 됐어요.</p>
-          <article className="profile-preview"><div className="profile-photo">{profile.photo ? <img src={profile.photo} alt={`${profile.name}의 프로필`} /> : <span>{profile.name.slice(0,1)}</span>}</div><div className="profile-info"><h3>{profile.name} <small>{new Date().getFullYear() - Number(profile.birthYear) + 1}</small></h3><p>{profile.region}{profile.job && ` · ${profile.job}`}</p><blockquote>{profile.intro}</blockquote></div></article>
-          <button className="primary" onClick={()=>setScreen("edit")}>프로필 수정하기<span>✎</span></button><div className="next-note"><b>다음 단계에서 열려요</b><span>프로필 탐색 · 무료 대화 요청 · 채팅</span></div>
-        </div>}
-        <p className="legal">프로토타입 데모 · 정보는 이 기기에만 저장됩니다.</p>
-      </section>
-    </main>
-  );
+  return <main className="app-shell">
+    <section className="brand-panel"><div className="brand-mark">잘되면<br/><strong>밥한끼</strong></div><div className="hero-copy"><span className="eyebrow">대화부터 시작하는 소개팅</span><h1>돈 쓰기 전에,<br/>대화부터 해보세요.</h1><p>만남의 장은 제가 만들겠습니다.<br/>잘되면 밥 한 끼 사주세요.</p></div><div className="promise-list"><span>프로필 무료</span><span>대화 요청 무료</span><span>채팅 무료</span></div></section>
+    <section className="auth-panel"><div className="mobile-brand"><b>잘되면 밥한끼</b><span>대화부터 시작하는 소개팅</span></div>
+      {screen==="auth"&&<div className="auth-card"><div className="step-label">01 · 간편하게 시작하기</div><h2>부담 없이 만나보세요</h2><p className="subcopy">SNS 계정은 빠른 가입을 위해서만 사용해요.</p><div className="social-buttons"><button className="social kakao" onClick={()=>socialLogin("kakao")}><b>Talk</b><span>카카오로 계속하기</span></button><button className="social google" onClick={()=>socialLogin("google")}><b>G</b><span>Google로 계속하기</span></button></div><p className="apple-note">iOS 앱 출시 시 Apple 로그인이 추가됩니다.</p><div className="trust-note"><span>✓</span><p><b>실제 사용자 확인은 따로 해요.</b><br/>프로필 탐색과 대화 전에 휴대전화 인증이 필요합니다.</p></div><label className="consent static"><input type="checkbox" defaultChecked/><span>계속하면 만 18세 이상이며, 이용약관과 개인정보 처리방침에 동의한 것으로 봅니다.</span></label></div>}
+      {screen==="phone"&&<div className="auth-card"><button className="back" onClick={()=>setScreen("auth")}>← 이전</button><div className="step-label">02 · 휴대전화 인증</div><h2>한 사람, 하나의 계정</h2><p className="subcopy">안전한 만남과 중복 계정 방지를 위해 본인 확인이 필요해요.</p><form onSubmit={verifyPhone}><label>휴대전화 번호<div className="inline-input"><input value={phone} onChange={e=>setPhone(e.target.value)} inputMode="tel" placeholder="01012345678"/><button type="button" onClick={requestCode}>{sent?"다시 받기":"인증번호 받기"}</button></div></label>{sent&&<label>인증번호<input value={code} onChange={e=>setCode(e.target.value)} inputMode="numeric" maxLength={6} placeholder="데모 번호 123456"/></label>}{error&&<p className="error">{error}</p>}<button className="primary" disabled={!sent} type="submit">인증하고 프로필 만들기<span>→</span></button></form><div className="policy-box"><b>인증정보는 이렇게 사용해요</b><ul><li>동일 인증정보의 복수 계정 생성을 제한합니다.</li><li>SNS 계정과 휴대전화 인증정보는 분리해 관리합니다.</li><li>인증 전에는 탐색·대화 기능을 열지 않습니다.</li></ul></div></div>}
+      {screen==="edit"&&<div className="auth-card profile-form"><div className="verified-badge">✓ 휴대전화 인증 완료</div><div className="step-label">03 · 프로필 만들기</div><h2>{profile.name?"프로필을 다듬어 볼까요?":"당신을 조금 알려주세요"}</h2><p className="subcopy">나중에 언제든 수정할 수 있어요.</p><form onSubmit={saveProfile}><div className="photo-row"><label className="photo-upload">{profile.photo?<img src={profile.photo} alt="프로필 미리보기"/>:<span>＋<small>사진 추가</small></span>}<input type="file" accept="image/png,image/jpeg,image/webp" onChange={uploadPhoto}/></label><p>얼굴이 잘 보이는 사진 1장<br/><small>JPG, PNG, WEBP · 최대 3MB</small></p></div><div className="two-col"><label>닉네임 *<input value={profile.name} onChange={e=>setProfile({...profile,name:e.target.value})} placeholder="예: 저녁산책"/></label><label>출생연도 *<input value={profile.birthYear} onChange={e=>setProfile({...profile,birthYear:e.target.value})} inputMode="numeric" placeholder="1995"/></label></div><label>활동 지역 *<select value={profile.region} onChange={e=>setProfile({...profile,region:e.target.value})}><option value="">선택해 주세요</option>{["서울","경기","인천","부산","대전","대구","광주","제주"].map(x=><option key={x}>{x}</option>)}</select></label><label>하는 일<input value={profile.job} onChange={e=>setProfile({...profile,job:e.target.value})} placeholder="예: 브랜드 디자이너"/></label><label>한 줄 소개 *<textarea maxLength={120} value={profile.intro} onChange={e=>setProfile({...profile,intro:e.target.value})} placeholder="좋아하는 것과 요즘 관심사를 들려주세요."/><small className="counter">{profile.intro.length}/120</small></label>{error&&<p className="error">{error}</p>}<button className="primary" type="submit">프로필 활성화하기<span>→</span></button></form></div>}
+      {screen==="profile"&&<div className="auth-card"><div className="profile-top"><div><div className="verified-badge">✓ 인증된 프로필</div><h2>반가워요, {profile.name}님</h2></div><button className="text-button" onClick={logout}>로그아웃</button></div><p className="subcopy">이제 프로필 탐색과 무료 대화를 시작할 수 있어요.</p><article className="profile-preview"><div className="profile-photo">{profile.photo?<img src={profile.photo} alt={`${profile.name}의 프로필`}/>:<span>{profile.name.slice(0,1)}</span>}</div><div className="profile-info"><h3>{profile.name} <small>{new Date().getFullYear()-Number(profile.birthYear)+1}</small></h3><p>{profile.region}{profile.job&&` · ${profile.job}`}</p><blockquote>{profile.intro}</blockquote></div></article><button className="primary" onClick={()=>setScreen("edit")}>프로필 수정하기<span>✎</span></button><div className="account-links"><b>연결된 로그인</b><span>{provider==="kakao"?"카카오":"Google"} 연결됨 · 다른 SNS 연결은 추후 제공</span></div></div>}
+      <p className="legal">프로토타입 데모 · 인증번호는 123456 · 실제 개인정보를 입력하지 마세요.</p>
+    </section>
+  </main>;
 }
