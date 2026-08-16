@@ -1,0 +1,1 @@
+export function RecommendationReason({preferenceMatch,sharedCount}:{preferenceMatch:boolean;sharedCount:number}){return <details className="recommendation-reason"><summary>왜 이 카드가 보여요?</summary><div>{preferenceMatch&&<p>🎯 선택한 추구미와 잘 맞아요.</p>}<p>💬 대화 주제가 {sharedCount}개 겹쳐요.</p><p>🏠 인기나 결제 여부는 추천에 쓰지 않아요.</p></div></details>}

@@ -13,6 +13,11 @@ export type Profile = {
   intro: string;
   photo: string;
   mbti: string;
+  height: number | null;
+  smoking: "non-smoker" | "smoker" | "";
+  selfAppearanceTraits: string[];
+  signature: string;
+  cardTheme: "coral" | "sage" | "navy";
   tags: ProfileTags;
 };
 
@@ -24,4 +29,6 @@ export type DemoAccount = {
 };
 
 export const EMPTY_TAGS: ProfileTags = { basic: [], lifestyle: [], dating: [], topics: [], attraction: [], badges: [] };
-export const EMPTY_PROFILE: Profile = { name: "", birthDate: "", gender: "", region: "", job: "", intro: "", photo: "", mbti: "", tags: EMPTY_TAGS };
+export const EMPTY_PROFILE: Profile = { name: "", birthDate: "", gender: "", region: "", job: "", intro: "", photo: "", mbti: "", height: null, smoking: "", selfAppearanceTraits: [], signature: "", cardTheme: "coral", tags: EMPTY_TAGS };
+
+export type PublicProfile = Pick<Profile,"name"|"birthDate"|"gender"|"region"|"job"|"intro"|"photo"|"mbti"|"height"|"smoking"|"selfAppearanceTraits"|"signature"|"cardTheme"|"tags"> & { id:string; verified:boolean };
