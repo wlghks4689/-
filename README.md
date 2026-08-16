@@ -26,6 +26,19 @@ npm install
 npm run dev
 ```
 
+## 코드 구조
+
+- `app/page.tsx`: 화면 상태와 전체 흐름
+- `components/auth`: 로그인·휴대전화 인증 목업
+- `components/profile`: 기본 프로필·성향 작성·프로필 미리보기
+- `components/conversation`: 대화 요청과 공통 주제 힌트
+- `types/profile.ts`: 프로필과 계정 타입
+- `lib/profile-storage.ts`: 현재 `localStorage` 저장 계층
+- `lib/profile-utils.ts`: 공통 검증과 대화 주제 교집합
+- `lib/supabase/client.ts`: Supabase 브라우저 클라이언트 준비
+
+Supabase 연결 시 `.env.example`을 참고해 로컬 환경변수를 설정합니다. 현재 실제 프로젝트 연결, DB migration, RLS, Storage 업로드는 구현되지 않았습니다.
+
 ## 임시 결정과 TODO
 
 - 서비스명은 `잘되면 밥한끼`, 대표 슬로건은 `돈 쓰기 전에, 대화부터 해보세요`입니다.

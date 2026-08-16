@@ -1,0 +1,7 @@
+import { getFullAge } from "../../lib/profile-utils";
+import { Profile } from "../../types/profile";
+import { TRAIT_STEPS } from "./ProfileTraitsWizard";
+
+export function ProfilePreview({ profile, onLogout, onEditTraits, onRequest }: { profile:Profile;onLogout:()=>void;onEditTraits:()=>void;onRequest:()=>void }) {
+  return <div className="auth-card"><div className="profile-top"><div><div className="verified-badge">✓ 인증된 프로필</div><h2>{profile.name}님의 프로필</h2></div><button className="text-button" onClick={onLogout}>로그아웃</button></div><article className="profile-preview"><div className="profile-photo"><img src={profile.photo} alt={`${profile.name}의 프로필`}/><div className="photo-identity"><b>{profile.name}</b><span>만 {getFullAge(profile.birthDate)}세</span></div></div><div className="profile-info"><div className="info-list"><div><span className="info-icon">⌖</span><p><small>활동 지역</small>{profile.region}{profile.job&&` · ${profile.job}`}</p></div><div className="intro-row"><span className="info-icon">“</span><p><small>한 줄 소개</small>{profile.intro}</p></div></div>{TRAIT_STEPS.map(s=><section className="tag-section" key={s.key}><h3>{s.icon} {s.key==="attraction"?"이런 분위기에 끌려요":s.key==="badges"?"나와 대화하면":s.title}</h3><div>{profile.tags[s.key].map(x=><span key={x}>{x}</span>)}</div></section>)}</div></article><div className="profile-actions"><button onClick={onEditTraits}>성향 수정</button><button onClick={onRequest}>대화 요청 미리보기</button></div></div>;
+}

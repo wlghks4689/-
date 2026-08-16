@@ -70,16 +70,21 @@ request   대화 요청 및 대화 힌트 목업
 
 ## 4. 주요 컴포넌트와 역할
 
-현재 UI는 별도 React 컴포넌트로 분리되지 않고 `Home` 컴포넌트 하나에 구성되어 있다.
+현재 `app/page.tsx`는 화면 상태와 상위 흐름만 조정하고, 화면 UI와 검증은 역할별 컴포넌트로 분리되어 있다.
 
 - `app/page.tsx`
-  - `Home`: 전체 상태, 화면 전환, 입력 검증, 프로필 저장, 태그 선택, 대화 힌트 담당
-  - `ageOf`: 생년월일을 오늘 기준 만 나이로 계산
-  - `toggle`: 현재 단계 태그 선택/해제 및 개수 제한
-  - `addCustom`: 직접 입력 태그 길이/URL/연락처 검사 후 추가
-  - `upload`: 이미지 파일을 Data URL로 읽고 사진 심사 상태를 재현
-  - `saveBasic`: 필수 프로필, 사진 승인, 연령 검증
-  - `nextTraits`: 단계 진행 및 마지막 단계에서 `localStorage` 저장
+  - `Home`: 화면 상태, 전체 프로필 상태, 화면 전환과 상위 콜백만 담당
+- `components/auth/`
+  - `SocialLogin`: Kakao/Google 로그인 목업
+  - `PhoneVerification`: 휴대전화 번호와 데모 인증번호 검증
+- `components/profile/`
+  - `BasicProfileForm`: 사진 심사 목업과 기본 프로필 검증/입력
+  - `ProfileTraitsWizard`: 6단계 태그 선택, 직접 태그 검증, 단계 진행
+  - `ProfilePreview`: 완성 프로필 카드와 태그 표시
+- `components/conversation/`
+  - `ConversationRequest`: 대화 요청 목업 화면
+  - `ConversationHints`: 공통 주제 기반 힌트 표시
+- `components/BrandPanel.tsx`: 서비스 브랜드 패널
 - `app/profile-tags.ts`
   - `PROFILE_TAGS`: 기본 성향, 라이프스타일, 연애 타입, 대화 주제, 성별별 끌림 태그 정의
   - `TALK_BADGES`: 대화 성향 배지 이름과 설명 정의
@@ -89,6 +94,10 @@ request   대화 요청 및 대화 힌트 목업
   - 전체 화면, 폼, 카드, 태그, 진행률, 대화 요청 UI 스타일
 - `app/chatgpt-auth.ts`
   - 스타터에 포함된 ChatGPT 인증 헬퍼. 현재 제품 흐름에서 import하거나 사용하지 않음
+- `types/profile.ts`: 프로필, 태그, 계정, 인증 공급자 타입과 빈 기본값
+- `lib/profile-storage.ts`: `loadAccount`, `saveAccount`, `clearAccount` 로컬 저장 인터페이스
+- `lib/profile-utils.ts`: 만 나이, 휴대전화, 직접 태그, 공통 주제 유틸리티
+- `lib/supabase/client.ts`: 환경변수가 있을 때만 공식 Supabase 브라우저 클라이언트를 생성하는 준비 코드
 
 ## 5. 현재 데이터 구조
 
@@ -128,14 +137,15 @@ photoReview
 
 ## 6. Supabase 테이블 및 연동 상태
 
-- Supabase 패키지와 환경변수는 현재 없음
+- 공식 `@supabase/supabase-js` 패키지와 브라우저 클라이언트 생성 기반은 추가됨
+- `.env.example`에 `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` 이름이 정의됨
 - Supabase 프로젝트, Auth, DB, Storage, Realtime 모두 미연결
 - 실제 마이그레이션과 RLS 정책 없음
 - `db/schema.ts`는 의도적으로 비어 있음
 - `db/index.ts`는 Cloudflare D1용 Drizzle 헬퍼지만 현재 호출되지 않음
 - `.openai/hosting.json`의 `d1`, `r2`도 모두 `null`
 
-권장 프로필 테이블 설계는 `docs/profile-system.md`에만 기록되어 있으며 아직 구현되지 않았다.
+권장 프로필 테이블과 RLS/Storage 원칙은 `docs/supabase-schema.md`와 `docs/profile-system.md`에 기록되어 있으나 실제 migration과 연결은 아직 구현되지 않았다.
 
 ## 7. 로그인/프로필/대화요청/채팅 구현 상태
 
@@ -147,7 +157,7 @@ photoReview
 | 대화 요청 | 목업 | 힌트/입력/버튼 UI만 존재 |
 | 채팅 | 미구현 | 채팅방, 메시지, Realtime 없음 |
 
-로그아웃은 화면만 로그인으로 돌리고 저장된 `localStorage` 계정을 삭제하지 않는다.
+로그아웃은 `clearAccount()`를 호출해 저장된 데모 계정을 삭제하고 프로필/인증/단계 상태를 초기화한다.
 
 ## 8. 프로필 태그 및 대화 성향 배지 구현 상태
 
@@ -171,6 +181,11 @@ photoReview
 ## 11. 최근 수정한 주요 파일
 
 - `app/page.tsx`: 인증부터 프로필 성향, 상세, 대화 요청 목업까지 전체 제품 흐름
+- `components/`: 인증, 기본 프로필, 성향 작성, 프로필 미리보기, 대화 요청 UI
+- `types/profile.ts`: 공통 프로필 타입
+- `lib/profile-storage.ts`, `lib/profile-utils.ts`: 저장 계층과 공통 검증/비교 로직
+- `lib/supabase/client.ts`, `.env.example`: Supabase 클라이언트 연결 기반
+- `docs/supabase-schema.md`: Supabase SQL 및 보안 정책 초안
 - `app/profile-tags.ts`: 프로필 태그 및 대화 배지 데이터
 - `app/globals.css`: 단계형 성향 UI, 프로필 카드, 대화 힌트 스타일
 - `app/layout.tsx`: 서비스 제목과 설명 메타데이터
@@ -193,11 +208,9 @@ a3f7eb2 Build Phase 0-1 dating app prototype
 - 로그인, 휴대전화 인증, 얼굴 사진 검수가 실제 보안/인증 기능이 아님
 - 사진 Data URL과 프로필 개인정보가 `localStorage`에 평문 저장됨
 - 사진 심사는 사진 내용과 관계없이 시간 경과 후 승인됨
-- 로그아웃해도 저장된 계정과 프로필이 삭제되지 않음
 - 실제 상대가 없어 공통 주제 비교가 고정 목록에 의존함
 - 대화 요청 보내기 버튼은 아무 데이터도 저장하지 않음
 - 직접 입력 검증은 URL/전화번호 형태와 길이만 확인하며 욕설·우회 입력을 막지 못함
-- `Home` 하나에 모든 화면과 로직이 있어 기능 확장 시 유지보수가 어려움
 - 태그 정의가 운영자 DB가 아닌 코드 상수이므로 변경 시 재배포 필요
 - `mbti` 필드는 사용하지 않음
 - 패키지 이름은 과거 임시명인 `sai-dating-prototype`이고 배포 URL slug도 `sai-dating-prototype`임
@@ -208,9 +221,8 @@ a3f7eb2 Build Phase 0-1 dating app prototype
 
 우선순위 제안:
 
-1. `Home`을 인증, 기본 프로필, 태그 단계, 프로필 카드, 대화 요청 컴포넌트로 분리
-2. Supabase 프로젝트 연결 및 환경변수 구성
-3. `profiles`, 태그 정의/선택, 사진, 인증 식별자 테이블과 RLS 구현
+1. Supabase 프로젝트 연결 및 환경변수 구성
+2. `profiles`, 태그 정의/선택, 사진, 인증 식별자 테이블과 RLS 구현
 4. Kakao/Google OAuth 및 휴대전화 본인확인 연결
 5. 사진 Storage 업로드와 실제 얼굴 검수/관리자 재심사 연결
 6. 반대 성별 프로필 탐색 및 서버 필터링 구현
@@ -247,6 +259,8 @@ CODEX_SANDBOX
 WRANGLER_WRITE_LOGS
 WRANGLER_LOG_PATH
 MINIFLARE_REGISTRY_PATH
+VITE_SUPABASE_URL
+VITE_SUPABASE_ANON_KEY
 ```
 
 `db/index.ts`는 향후 Cloudflare D1을 사용할 경우 `DB` 바인딩을 기대하지만 현재 바인딩은 설정되지 않았다. Supabase 환경변수 이름도 아직 프로젝트에 정의되어 있지 않다.
@@ -262,6 +276,7 @@ MINIFLARE_REGISTRY_PATH
 - Cloudflare Vite Plugin / Wrangler
 - OpenAI Sites Vite Plugin 및 Sites 배포
 - Drizzle ORM / Drizzle Kit: 설치되어 있으나 제품 DB 스키마는 비어 있고 미사용
+- Supabase JavaScript Client: 설치 및 클라이언트 팩토리 준비, 실제 프로젝트 미연결
 - ESLint 및 React/JSX 접근성 플러그인
 - 데이터 저장: 브라우저 `localStorage`
 - 배포: 비공개 OpenAI Sites 프로젝트

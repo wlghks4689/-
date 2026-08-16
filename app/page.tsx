@@ -1,45 +1,40 @@
 "use client";
 
-import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
-import { PROFILE_TAGS, TALK_BADGES } from "./profile-tags";
+import { useEffect, useState } from "react";
+import { BrandPanel } from "../components/BrandPanel";
+import { PhoneVerification } from "../components/auth/PhoneVerification";
+import { SocialLogin } from "../components/auth/SocialLogin";
+import { ConversationRequest } from "../components/conversation/ConversationRequest";
+import { BasicProfileForm } from "../components/profile/BasicProfileForm";
+import { ProfilePreview } from "../components/profile/ProfilePreview";
+import { ProfileTraitsWizard } from "../components/profile/ProfileTraitsWizard";
+import { clearAccount, loadAccount, saveAccount } from "../lib/profile-storage";
+import { getSharedTopics } from "../lib/profile-utils";
+import { EMPTY_PROFILE, PhotoReview, Profile, Provider } from "../types/profile";
 
-type Provider="kakao"|"google"; type Gender="male"|"female"; type Review="none"|"reviewing"|"approved"|"rejected";
-type TagKey="basic"|"lifestyle"|"dating"|"topics"|"attraction"|"badges";
-type Profile={name:string;birthDate:string;gender:Gender|"";region:string;job:string;intro:string;photo:string;mbti:string;tags:Record<TagKey,string[]>};
-const emptyTags:Record<TagKey,string[]>={basic:[],lifestyle:[],dating:[],topics:[],attraction:[],badges:[]};
-const emptyProfile:Profile={name:"",birthDate:"",gender:"",region:"",job:"",intro:"",photo:"",mbti:"",tags:emptyTags};
-const steps=[
-  {key:"basic" as TagKey,icon:"🧩",title:"기본 성향",lead:"나는 대체로 이런 사람이에요.",help:"나를 잘 설명하는 키워드를 골라주세요.",custom:true},
-  {key:"lifestyle" as TagKey,icon:"🏠",title:"라이프스타일",lead:"평소에는 이렇게 살아요.",help:"함께 시간을 보낼 때 중요한 생활 스타일이에요.",custom:true},
-  {key:"dating" as TagKey,icon:"❤️",title:"연애 타입",lead:"연애하면 저는 이런 편이에요.",help:"좋고 나쁨보다 서로 잘 맞는지가 중요해요.",custom:true},
-  {key:"topics" as TagKey,icon:"💬",title:"이 얘기라면 오래 할 수 있어요",lead:"당신이 좋아하는 이야기를 알려주세요.",help:"흔한 취미도, 아무도 모르는 마이너 취향도 좋아요.",custom:true},
-  {key:"attraction" as TagKey,icon:"💘",title:"이런 분위기에 끌려요",lead:"이런 매력에 마음이 가요.",help:"상대에게 기대하는 분위기를 골라주세요.",custom:false},
-  {key:"badges" as TagKey,icon:"🗣️",title:"나와 대화하면 이런 느낌이에요",lead:"대화 스타일을 딱 3개만 골라주세요.",help:"처음 말을 걸 때 도움이 되는 배지예요.",custom:false},
-];
-function ageOf(date:string){const b=new Date(`${date}T00:00:00`),t=new Date();let a=t.getFullYear()-b.getFullYear();if(t.getMonth()<b.getMonth()||(t.getMonth()===b.getMonth()&&t.getDate()<b.getDate()))a--;return a;}
+type Screen = "auth" | "phone" | "edit" | "traits" | "profile" | "request";
+const DEMO_OTHER_TOPICS = ["게임", "맛집", "AI"];
 
-export default function Home(){
- const [screen,setScreen]=useState<"auth"|"phone"|"edit"|"traits"|"profile"|"request">("auth");const [provider,setProvider]=useState<Provider|null>(null);const [profile,setProfile]=useState<Profile>(emptyProfile);const [phone,setPhone]=useState("");const [code,setCode]=useState("");const [sent,setSent]=useState(false);const [error,setError]=useState("");const [review,setReview]=useState<Review>("none");const [step,setStep]=useState(0);const [custom,setCustom]=useState("");
- const adultLimit=useMemo(()=>{const d=new Date();d.setFullYear(d.getFullYear()-18);return d.toISOString().slice(0,10)},[]);
- useEffect(()=>{const raw=localStorage.getItem("meal-demo-account");if(!raw)return;const data=JSON.parse(raw),p={...emptyProfile,...data.profile,tags:{...emptyTags,...data.profile?.tags},birthDate:data.profile?.birthDate||""};setProfile(p);setProvider(data.provider||null);setReview(p.photo?"approved":"none");if(data.phoneVerified&&p.name&&p.photo&&p.birthDate)setScreen("profile")},[]);
- const current=steps[step];const limit=current.key==="badges"?3:5;const selected=profile.tags[current.key];
- const options=current.key==="badges"?TALK_BADGES.map(x=>x[0]):current.key==="attraction"?(profile.gender==="male"?PROFILE_TAGS.attractionForWomen:PROFILE_TAGS.attractionForMen):PROFILE_TAGS[current.key as keyof typeof PROFILE_TAGS] as readonly string[];
- const mockTopics=["게임","맛집","AI"];const shared=profile.tags.topics.filter(x=>mockTopics.includes(x));
- function toggle(tag:string){const list=profile.tags[current.key],next=list.includes(tag)?list.filter(x=>x!==tag):list.length<limit?[...list,tag]:list;setProfile({...profile,tags:{...profile.tags,[current.key]:next}});if(!list.includes(tag)&&list.length>=limit)setError(`최대 ${limit}개까지 선택할 수 있어요.`);else setError("");}
- function addCustom(){const value=custom.trim();if(!value)return;if(value.length>20||/https?:|www\.|\d{3}[- ]?\d{3,4}[- ]?\d{4}/i.test(value)){setError("20자 이하로, URL이나 연락처 없이 입력해 주세요.");return;}if(selected.length>=5){setError("최대 5개까지 선택할 수 있어요.");return;}if(!selected.includes(value))setProfile({...profile,tags:{...profile.tags,[current.key]:[...selected,value]}});setCustom("");setError("");}
- function socialLogin(p:Provider){setProvider(p);setScreen("phone")}function requestCode(){if(!/^01[016789]\d{7,8}$/.test(phone.replaceAll("-",""))){setError("휴대전화 번호를 정확히 입력해 주세요.");return}setSent(true);setError("")}
- function verify(e:FormEvent){e.preventDefault();if(code!=="123456"){setError("데모 인증번호 123456을 입력해 주세요.");return}setError("");setScreen(profile.name&&profile.photo&&profile.birthDate?"profile":"edit")}
- function upload(e:ChangeEvent<HTMLInputElement>){const f=e.target.files?.[0];if(!f)return;if(f.size>3*1024*1024){setError("사진은 3MB 이하로 선택해 주세요.");setReview("rejected");return}setReview("reviewing");setError("");const r=new FileReader();r.onload=()=>{setProfile(p=>({...p,photo:String(r.result)}));setTimeout(()=>setReview("approved"),1200)};r.readAsDataURL(f)}
- function saveBasic(e:FormEvent){e.preventDefault();if(!profile.photo||review!=="approved"){setError("승인된 정면 얼굴 사진이 필요해요.");return}if(!profile.name||!profile.birthDate||!profile.gender||!profile.region||!profile.intro){setError("필수 항목을 모두 채워 주세요.");return}if(ageOf(profile.birthDate)<18){setError("만 18세 이상만 이용할 수 있어요.");return}setError("");setStep(0);setScreen("traits")}
- function nextTraits(){if(selected.length===0){setError("나를 표현하는 태그를 하나 이상 골라주세요.");return}setError("");setCustom("");if(step<steps.length-1)setStep(step+1);else{localStorage.setItem("meal-demo-account",JSON.stringify({provider,phoneVerified:true,profile,photoReview:"approved"}));setScreen("profile")}}
- function logout(){setScreen("auth");setProvider(null);setSent(false);setError("")}
+export default function Home() {
+  const [screen,setScreen]=useState<Screen>("auth");
+  const [provider,setProvider]=useState<Provider|null>(null);
+  const [profile,setProfile]=useState<Profile>(EMPTY_PROFILE);
+  const [review,setReview]=useState<PhotoReview>("none");
+  const [traitStep,setTraitStep]=useState(0);
 
- return <main className="app-shell"><section className="brand-panel"><div className="brand-mark">잘되면<br/><strong>밥한끼</strong></div><div className="hero-copy"><span className="eyebrow">대화부터 시작하는 소개팅</span><h1>돈 쓰기 전에,<br/>대화부터 해보세요.</h1><p>만남의 장은 제가 만들겠습니다.<br/>잘되면 밥 한 끼 사주세요.</p></div><div className="promise-list"><span>프로필 무료</span><span>대화 요청 무료</span><span>채팅 무료</span></div></section><section className="auth-panel"><div className="mobile-brand"><b>잘되면 밥한끼</b><span>대화부터 시작하는 소개팅</span></div>
- {screen==="auth"&&<div className="auth-card"><div className="step-label">01 · 간편하게 시작하기</div><h2>부담 없이 만나보세요</h2><p className="subcopy">SNS 계정은 빠른 가입을 위해서만 사용해요.</p><div className="social-buttons"><button className="social kakao" onClick={()=>socialLogin("kakao")}><b>Talk</b><span>카카오로 계속하기</span></button><button className="social google" onClick={()=>socialLogin("google")}><b>G</b><span>Google로 계속하기</span></button></div><div className="trust-note"><span>✓</span><p><b>실제 사용자 확인은 따로 해요.</b><br/>탐색과 대화 전에 휴대전화 인증이 필요합니다.</p></div></div>}
- {screen==="phone"&&<div className="auth-card"><button className="back" onClick={()=>setScreen("auth")}>← 이전</button><div className="step-label">02 · 휴대전화 인증</div><h2>한 사람, 하나의 계정</h2><p className="subcopy">안전한 만남을 위해 본인 확인이 필요해요.</p><form onSubmit={verify}><label>휴대전화 번호<div className="inline-input"><input value={phone} onChange={e=>setPhone(e.target.value)} placeholder="01012345678"/><button type="button" onClick={requestCode}>인증번호 받기</button></div></label>{sent&&<label>인증번호<input value={code} onChange={e=>setCode(e.target.value)} maxLength={6} placeholder="데모 번호 123456"/></label>}{error&&<p className="error">{error}</p>}<button className="primary" disabled={!sent}>인증하고 프로필 만들기<span>→</span></button></form></div>}
- {screen==="edit"&&<div className="auth-card profile-form"><div className="step-label">03 · 기본 프로필</div><h2>먼저 기본부터 알려주세요</h2><p className="subcopy">사진과 기본 정보 다음에 재미있는 성향 태그를 골라요.</p><form onSubmit={saveBasic}><div className="photo-row"><label className="photo-upload required">{profile.photo?<img src={profile.photo} alt="프로필 미리보기"/>:<span>＋<small>사진 필수</small></span>}<input type="file" required={!profile.photo} accept="image/png,image/jpeg,image/webp" onChange={upload}/></label><div className="photo-guide"><b>정면 얼굴 사진 *</b><small>본인 얼굴이 선명한 사진만 등록할 수 있어요.</small>{review==="reviewing"&&<em className="review reviewing">◌ 사진 심사 중...</em>}{review==="approved"&&<em className="review approved">✓ 정면 얼굴 사진 승인</em>}</div></div><div className="two-col"><label>닉네임 *<input value={profile.name} onChange={e=>setProfile({...profile,name:e.target.value})}/></label><label>생년월일 *<input type="date" max={adultLimit} value={profile.birthDate} onChange={e=>setProfile({...profile,birthDate:e.target.value})}/></label></div><label>성별 *<div className="gender-pick"><button type="button" className={profile.gender==="male"?"active":""} onClick={()=>setProfile({...profile,gender:"male"})}>남성</button><button type="button" className={profile.gender==="female"?"active":""} onClick={()=>setProfile({...profile,gender:"female"})}>여성</button></div></label><label>활동 지역 *<select value={profile.region} onChange={e=>setProfile({...profile,region:e.target.value})}><option value="">선택해 주세요</option>{["서울","경기","인천","부산","대전","대구","광주","제주"].map(x=><option key={x}>{x}</option>)}</select></label><label>하는 일<input value={profile.job} onChange={e=>setProfile({...profile,job:e.target.value})}/></label><label>한 줄 소개 *<textarea maxLength={120} value={profile.intro} onChange={e=>setProfile({...profile,intro:e.target.value})}/></label>{error&&<p className="error">{error}</p>}<button className="primary" disabled={review!=="approved"}>성향 고르러 가기<span>→</span></button></form></div>}
- {screen==="traits"&&<div className="auth-card traits-card"><div className="progress-head"><span>프로필 만들기 {step+1} / {steps.length}</span><b>{selected.length} / {limit} 선택</b></div><div className="progress"><i style={{width:`${((step+1)/steps.length)*100}%`}}/></div><button className="back" onClick={()=>step?setStep(step-1):setScreen("edit")}>← 이전</button><h2>{current.icon} {current.title}</h2><p className="trait-lead"><b>{current.lead}</b><br/>{current.help}</p><div className="tag-grid">{options.map(tag=><button key={tag} className={selected.includes(tag)?"selected":""} onClick={()=>toggle(tag)}>{tag}</button>)}</div>{current.custom&&<div className="custom-tag"><p>{current.key==="topics"?<><b>남들이 잘 모르는 취향도 좋아요.</b><br/>F1, 인디게임, 시티팝처럼 구체적이면 더 좋아요.</>:"목록에 없다면 나만의 표현을 더해보세요."}</p><div><input value={custom} maxLength={20} onChange={e=>setCustom(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"){e.preventDefault();addCustom()}}} placeholder={current.key==="topics"?"내 주제 직접 적기":"직접 추가"}/><button onClick={addCustom}>추가</button></div></div>}{current.key==="badges"&&<div className="badge-notes">{selected.map(name=><p key={name}><b>{name}</b><span>{TALK_BADGES.find(x=>x[0]===name)?.[1]}</span></p>)}</div>}{error&&<p className="error">{error}</p>}<button className="primary trait-next" onClick={nextTraits}>{step===steps.length-1?"프로필 완성하기":"다음으로"}<span>→</span></button></div>}
- {screen==="profile"&&<div className="auth-card"><div className="profile-top"><div><div className="verified-badge">✓ 인증된 프로필</div><h2>{profile.name}님의 프로필</h2></div><button className="text-button" onClick={logout}>로그아웃</button></div><article className="profile-preview"><div className="profile-photo"><img src={profile.photo} alt={`${profile.name}의 프로필`}/><div className="photo-identity"><b>{profile.name}</b><span>만 {ageOf(profile.birthDate)}세</span></div></div><div className="profile-info"><div className="info-list"><div><span className="info-icon">⌖</span><p><small>활동 지역</small>{profile.region}{profile.job&&` · ${profile.job}`}</p></div><div className="intro-row"><span className="info-icon">“</span><p><small>한 줄 소개</small>{profile.intro}</p></div></div>{steps.map(s=><section className="tag-section" key={s.key}><h3>{s.icon} {s.key==="attraction"?"이런 분위기에 끌려요":s.key==="badges"?"나와 대화하면":s.title}</h3><div>{profile.tags[s.key].map(x=><span key={x}>{x}</span>)}</div></section>)}</div></article><div className="profile-actions"><button onClick={()=>{setStep(0);setScreen("traits")}}>성향 수정</button><button onClick={()=>setScreen("request")}>대화 요청 미리보기</button></div></div>}
- {screen==="request"&&<div className="auth-card request-card"><button className="back" onClick={()=>setScreen("profile")}>← 프로필로</button><div className="step-label">무료 대화 요청</div><h2>무슨 말을 할지 고민된다면</h2>{shared.length?<div className="conversation-hint"><span>💡</span><p><b>두 분 모두 {shared[0]} 이야기를 좋아해요.</b><br/>{shared[0]}에 빠지게 된 계기를 물어보는 건 어떨까요?</p></div>:<div className="conversation-hint"><span>💡</span><p><b>{profile.tags.topics[0]} 이야기를 꺼내보세요.</b><br/>최근 가장 재미있었던 것을 물어보면 자연스러워요.</p></div>}<label>첫 인사<textarea placeholder="프로필을 보고 궁금했던 점을 정중하게 적어보세요."/></label><p className="free-note">대화 요청과 채팅은 무료예요.</p><button className="primary">무료로 대화 요청 보내기<span>→</span></button></div>}
- <p className="legal">프로토타입 데모 · 정보는 이 기기에만 저장됩니다.</p></section></main>
+  useEffect(()=>{const account=loadAccount();if(!account)return;queueMicrotask(()=>{setProvider(account.provider);setProfile(account.profile);setReview(account.photoReview);if(account.phoneVerified&&account.profile.name&&account.profile.photo&&account.profile.birthDate)setScreen("profile")})},[]);
+
+  const sharedTopics=getSharedTopics(profile.tags.topics,DEMO_OTHER_TOPICS);
+  function completeProfile(){saveAccount({provider,phoneVerified:true,profile,photoReview:"approved"});setScreen("profile")}
+  function logout(){clearAccount();setProvider(null);setProfile(EMPTY_PROFILE);setReview("none");setTraitStep(0);setScreen("auth")}
+
+  return <main className="app-shell"><BrandPanel/><section className="auth-panel"><div className="mobile-brand"><b>잘되면 밥한끼</b><span>대화부터 시작하는 소개팅</span></div>
+    {screen==="auth"&&<SocialLogin onLogin={value=>{setProvider(value);setScreen("phone")}}/>}
+    {screen==="phone"&&<PhoneVerification onBack={()=>setScreen("auth")} onVerified={()=>setScreen(profile.name&&profile.photo&&profile.birthDate?"profile":"edit")}/>} 
+    {screen==="edit"&&<BasicProfileForm profile={profile} review={review} onProfile={setProfile} onReview={setReview} onComplete={()=>{setTraitStep(0);setScreen("traits")}}/>}
+    {screen==="traits"&&<ProfileTraitsWizard profile={profile} step={traitStep} onStep={setTraitStep} onProfile={setProfile} onBackToBasic={()=>setScreen("edit")} onComplete={completeProfile}/>} 
+    {screen==="profile"&&<ProfilePreview profile={profile} onLogout={logout} onEditTraits={()=>{setTraitStep(0);setScreen("traits")}} onRequest={()=>setScreen("request")}/>} 
+    {screen==="request"&&<ConversationRequest sharedTopics={sharedTopics} fallback={profile.tags.topics[0]||"취미"} onBack={()=>setScreen("profile")}/>} 
+    <p className="legal">프로토타입 데모 · 정보는 이 기기에만 저장됩니다.</p>
+  </section></main>;
 }
