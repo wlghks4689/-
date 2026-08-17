@@ -8,7 +8,7 @@
 - Kakao/Google 로그인, 휴대전화 인증, 사진 심사의 로컬 데모 흐름
 - 사진 필수 기본 프로필과 생년월일 기반 만 나이 계산
 - 6단계 프로필 성향 작성과 브라우저 저장
-- 반대 성별 데모 프로필 추천, 추천 사유, 동일 크기 PROFILE CARD/PROFILE NOTE 뒤집기
+- 반대 성별 데모 프로필 추천과 양방향 탐색, 동일 크기 PROFILE CARD/PROFILE NOTE 뒤집기
 - 대화 배지 설명 바텀시트와 실제 후보 기반 공통 주제 힌트
 - 보낸/받은/활성 대화 상태, 요청 수락, 대화 종료, 무료 슬롯 제한 목업
 - 프로필 카드 테마 선택과 캔버스 서명 저장
@@ -27,7 +27,7 @@
 
 - `app/page.tsx`: 인증·온보딩·앱 진입과 저장 조정
 - `components/app/MobileAppShell.tsx`: 하단 탭, 요청/채팅의 상위 로컬 상태
-- `components/home/HomeScreen.tsx`: 후보 필터·정렬·다음 카드·요청 진입
+- `components/home/HomeScreen.tsx`: 후보 정렬·이전/다음 카드·요청 진입. 홈 필터와 추천 이유 UI는 노출하지 않음
 - `components/home/ProfileCard.tsx`: PROFILE CARD/PROFILE NOTE, Adaptive Pill, 앞/뒤 전환, 테마, 배지 설명
 - `public/assets/meal-card-logo.svg`: 카드 양면이 공유하는 공식 카드 로고 에셋
 - `components/home/RecommendationReason.tsx`: 공통 주제와 추구미 추천 근거
@@ -92,6 +92,7 @@
 - 개인정보와 사진 Data URL이 localStorage에 평문 저장된다.
 - 새로고침 시 앱 셸의 요청/활성 대화 상태는 사라진다.
 - 데모 인물 사진은 외부 `i.pravatar.cc` URL이라 네트워크에 의존한다.
+- 첫 추천 여성 프로필은 프로젝트 로컬 생성 이미지 `public/assets/demo-profile-minji.png`를 사용한다. 나머지 데모 인물은 외부 `i.pravatar.cc` URL에 의존한다.
 - 실제 메시지 채팅방이 없고 피드는 플레이스홀더다.
 - MBTI 입력 UI가 없어 기존 프로필에서는 비어 있을 수 있다.
 - 실제 모바일 기기·스크린리더·다중 브라우저 QA는 아직 제한적이다.

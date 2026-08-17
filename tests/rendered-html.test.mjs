@@ -54,3 +54,12 @@ test("profile card keeps the final front and back interaction contract", async (
   assert.match(css, /overflow-y:auto;overflow-x:hidden/);
   assert.match(css, /\.adaptive-pill/);
 });
+
+test("home focuses on bidirectional card discovery", async () => {
+  const home = await readFile(new URL("../components/home/HomeScreen.tsx", import.meta.url), "utf8");
+  assert.match(home, /이전 카드 보기/);
+  assert.match(home, /다음 카드 보기/);
+  assert.doesNotMatch(home, /filter-row/);
+  assert.doesNotMatch(home, /RecommendationReason/);
+  assert.doesNotMatch(home, /왜 이 카드가 보여요/);
+});
