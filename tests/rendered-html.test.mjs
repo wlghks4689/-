@@ -63,3 +63,14 @@ test("home focuses on bidirectional card discovery", async () => {
   assert.doesNotMatch(home, /RecommendationReason/);
   assert.doesNotMatch(home, /왜 이 카드가 보여요/);
 });
+
+test("conversation request preserves the written first message", async () => {
+  const request = await readFile(new URL("../components/conversation/ConversationRequest.tsx", import.meta.url), "utf8");
+  const shell = await readFile(new URL("../components/app/MobileAppShell.tsx", import.meta.url), "utf8");
+  const chat = await readFile(new URL("../components/chat/ChatHub.tsx", import.meta.url), "utf8");
+  assert.match(request, /onSubmit\(trimmed\)/);
+  assert.ok(request.includes("maxLength={180}"));
+  assert.match(shell, /message}\]\);setCandidate/);
+  assert.doesNotMatch(chat, /Mock 수락/);
+  assert.match(chat, /내 대화 공간/);
+});

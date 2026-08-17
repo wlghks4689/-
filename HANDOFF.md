@@ -10,7 +10,7 @@
 - 6단계 프로필 성향 작성과 브라우저 저장
 - 반대 성별 데모 프로필 추천과 양방향 탐색, 동일 크기 PROFILE CARD/PROFILE NOTE 뒤집기
 - 대화 배지 설명 바텀시트와 실제 후보 기반 공통 주제 힌트
-- 보낸/받은/활성 대화 상태, 요청 수락, 대화 종료, 무료 슬롯 제한 목업
+- 보낸/받은/활성 대화 상태, 작성한 첫 인사 보존, 요청 수락, 대화 종료, 무료 슬롯 제한 목업
 - 프로필 카드 테마 선택과 캔버스 서명 저장
 
 ## 2. 아직 목업이거나 미구현인 기능
@@ -31,7 +31,7 @@
 - `components/home/ProfileCard.tsx`: PROFILE CARD/PROFILE NOTE, Adaptive Pill, 앞/뒤 전환, 테마, 배지 설명
 - `public/assets/meal-card-logo.svg`: 카드 양면이 공유하는 공식 카드 로고 에셋
 - `components/home/RecommendationReason.tsx`: 공통 주제와 추구미 추천 근거
-- `components/chat/ChatHub.tsx`: 활성/받은/보낸 탭, 2개 슬롯, 종료·상점 모달
+- `components/chat/ChatHub.tsx`: 활성/받은/보낸 탭, 슬롯 사용량 표시, 2개 슬롯, 종료·안내 모달
 - `components/feed/FeedPlaceholder.tsx`: 피드 준비 화면
 - `components/profile/MyProfile.tsx`: 내 카드, 테마, 서명, 설정/로그아웃
 - `components/profile/ProfileSignature.tsx`: 포인터 기반 서명 캔버스
@@ -57,7 +57,7 @@
 
 - 로그인·휴대전화·사진 심사: 로컬 목업
 - 프로필: 로컬 작성·수정·저장 가능
-- 대화 요청: 선택 후보를 보낸 요청 목록에 추가하는 로컬 상태
+- 대화 요청: 선택 후보와 사용자가 작성한 첫 인사를 보낸 요청 목록에 추가하는 로컬 상태
 - 요청 수락: 활성 대화로 이동하며 무료 슬롯을 사용
 - 채팅: 활성 상대 목록까지만 구현. 메시지 화면/저장/Realtime은 미구현
 
@@ -91,6 +91,7 @@
 - 인증·심사·추천·슬롯은 브라우저 상태이므로 보안 기능이 아니다.
 - 개인정보와 사진 Data URL이 localStorage에 평문 저장된다.
 - 새로고침 시 앱 셸의 요청/활성 대화 상태는 사라진다.
+- 보낸 요청의 `수락 상태 보기`는 서버가 없는 데모에서 수락 후 활성 대화 전환을 확인하기 위한 로컬 동작이다.
 - 데모 인물 사진은 외부 `i.pravatar.cc` URL이라 네트워크에 의존한다.
 - 첫 추천 여성 프로필은 프로젝트 로컬 생성 이미지 `public/assets/demo-profile-minji.png`를 사용한다. 나머지 데모 인물은 외부 `i.pravatar.cc` URL에 의존한다.
 - 실제 메시지 채팅방이 없고 피드는 플레이스홀더다.

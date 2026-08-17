@@ -1,1 +1,1 @@
-export function FeedPlaceholder(){return <div className="mobile-screen placeholder-screen"><span>▤</span><h2>피드</h2><p>자유롭게 이야기하고<br/>같이 놀 사람을 찾는 공간을 준비하고 있어요.</p><b>곧 만나요.</b></div>}
+export function FeedPlaceholder(){return <div className="mobile-screen placeholder-screen"><span>▤</span><small>아직 요리 중</small><h2>피드는 조금만 기다려주세요.</h2><p>카드 한 장으로는 다 못한 이야기,<br/>가볍게 꺼내놓을 공간을 만들고 있어요.</p><b>지금은 좋은 대화 한 번에 집중해볼까요?</b></div>}
