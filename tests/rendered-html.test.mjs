@@ -74,3 +74,16 @@ test("conversation request preserves the written first message", async () => {
   assert.doesNotMatch(chat, /Mock 수락/);
   assert.match(chat, /내 대화 공간/);
 });
+
+test("profile creation exposes adult birth years and custom selections", async () => {
+  const basic = await readFile(new URL("../components/profile/BasicProfileForm.tsx", import.meta.url), "utf8");
+  const traits = await readFile(new URL("../components/profile/ProfileTraitsWizard.tsx", import.meta.url), "utf8");
+  const card = await readFile(new URL("../components/home/ProfileCard.tsx", import.meta.url), "utf8");
+  assert.match(basic, /getFullYear\(\)-20/);
+  assert.match(basic, /출생연도/);
+  assert.doesNotMatch(basic, /type="date"/);
+  assert.match(traits, /내가 직접 추가한 키워드/);
+  assert.match(traits, /현재 {selected.length}개 선택/);
+  assert.match(traits, /연애 스타일/);
+  assert.match(card, /CardIcon/);
+});

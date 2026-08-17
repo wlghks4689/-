@@ -6,7 +6,7 @@
 
 - 모바일 우선 단일 페이지 앱 셸과 하단 탭: 홈, 대화, 피드, 내 프로필
 - Kakao/Google 로그인, 휴대전화 인증, 사진 심사의 로컬 데모 흐름
-- 사진 필수 기본 프로필과 생년월일 기반 만 나이 계산
+- 사진 필수 기본 프로필과 20세 이상만 표시되는 출생연도 선택
 - 6단계 프로필 성향 작성과 브라우저 저장
 - 반대 성별 데모 프로필 추천과 양방향 탐색, 동일 크기 PROFILE CARD/PROFILE NOTE 뒤집기
 - 대화 배지 설명 바텀시트와 실제 후보 기반 공통 주제 힌트
@@ -42,7 +42,7 @@
 
 ## 5. 현재 데이터 구조
 
-`Profile`은 이름, 생년월일, 성별, 지역, 직업, 소개, 사진 Data URL, MBTI, 키, 흡연, 자기 외형 특징, 서명, 카드 테마와 `basic/lifestyle/dating/topics/attraction/badges` 태그 배열을 가진다. 카드 테마는 coral/crimson/cream/sage/navy/lavender/mono 7종이다. `PublicProfile`은 여기에 데모 ID와 인증 여부를 더한다. 계정은 `meal-demo-account` 키로 `localStorage`에 저장된다.
+`Profile`은 이름, 출생연도 호환값(`birthDate`에 `YYYY-01-01` 저장), 성별, 지역, 직업, 소개, 사진 Data URL, MBTI, 키, 흡연, 자기 외형 특징, 서명, 카드 테마와 `basic/lifestyle/dating/topics/attraction/badges` 태그 배열을 가진다. 카드 테마는 coral/crimson/cream/sage/navy/lavender/mono 7종이다. `PublicProfile`은 여기에 데모 ID와 인증 여부를 더한다. 계정은 `meal-demo-account` 키로 `localStorage`에 저장된다.
 
 `attraction`은 화면에서 `🎯 추구미 키워드`로 표시하며 최대 1개다. 개인 추천 입력이므로 타인의 공개 카드에는 표시하지 않는다.
 
@@ -63,7 +63,9 @@
 
 ## 8. 프로필 태그 및 대화 성향 배지 구현 상태
 
-- 일반 성향/라이프스타일/연애 타입/대화 주제와 직접 입력 지원
+- 일반 성향/라이프스타일/연애 스타일/대화 주제와 직접 입력 지원
+- 화면 명칭은 `연애 스타일`이며 내부 호환 키는 `dating`을 유지
+- 직접 입력 키워드는 별도 영역에 즉시 표시되고 선택 개수/최대 개수는 옵션 목록 아래에 표시
 - 추구미 키워드는 성별별 구조화 후보 중 최대 1개
 - 대화 배지는 최대 3개이며 공개 카드에서 누르면 설명 바텀시트 표시
 - 추구미는 추천 점수에만 쓰고 카드에 노출하지 않음
