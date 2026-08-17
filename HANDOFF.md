@@ -8,7 +8,7 @@
 - Kakao/Google 로그인, 휴대전화 인증, 사진 심사의 로컬 데모 흐름
 - 사진 필수 기본 프로필과 생년월일 기반 만 나이 계산
 - 6단계 프로필 성향 작성과 브라우저 저장
-- 반대 성별 데모 프로필 추천, 추천 사유, 카드 앞/뒤 뒤집기
+- 반대 성별 데모 프로필 추천, 추천 사유, 동일 크기 PROFILE CARD/PROFILE NOTE 뒤집기
 - 대화 배지 설명 바텀시트와 실제 후보 기반 공통 주제 힌트
 - 보낸/받은/활성 대화 상태, 요청 수락, 대화 종료, 무료 슬롯 제한 목업
 - 프로필 카드 테마 선택과 캔버스 서명 저장
@@ -28,7 +28,8 @@
 - `app/page.tsx`: 인증·온보딩·앱 진입과 저장 조정
 - `components/app/MobileAppShell.tsx`: 하단 탭, 요청/채팅의 상위 로컬 상태
 - `components/home/HomeScreen.tsx`: 후보 필터·정렬·다음 카드·요청 진입
-- `components/home/ProfileCard.tsx`: MEAL PASS 카드, 앞/뒤, 테마, 배지 설명
+- `components/home/ProfileCard.tsx`: PROFILE CARD/PROFILE NOTE, Adaptive Pill, 앞/뒤 전환, 테마, 배지 설명
+- `public/assets/meal-card-logo.svg`: 카드 양면이 공유하는 공식 카드 로고 에셋
 - `components/home/RecommendationReason.tsx`: 공통 주제와 추구미 추천 근거
 - `components/chat/ChatHub.tsx`: 활성/받은/보낸 탭, 2개 슬롯, 종료·상점 모달
 - `components/feed/FeedPlaceholder.tsx`: 피드 준비 화면
@@ -41,7 +42,7 @@
 
 ## 5. 현재 데이터 구조
 
-`Profile`은 이름, 생년월일, 성별, 지역, 직업, 소개, 사진 Data URL, MBTI, 키, 흡연, 자기 외형 특징, 서명, 카드 테마와 `basic/lifestyle/dating/topics/attraction/badges` 태그 배열을 가진다. `PublicProfile`은 여기에 데모 ID와 인증 여부를 더한다. 계정은 `meal-demo-account` 키로 `localStorage`에 저장된다.
+`Profile`은 이름, 생년월일, 성별, 지역, 직업, 소개, 사진 Data URL, MBTI, 키, 흡연, 자기 외형 특징, 서명, 카드 테마와 `basic/lifestyle/dating/topics/attraction/badges` 태그 배열을 가진다. 카드 테마는 coral/crimson/cream/sage/navy/lavender/mono 7종이다. `PublicProfile`은 여기에 데모 ID와 인증 여부를 더한다. 계정은 `meal-demo-account` 키로 `localStorage`에 저장된다.
 
 `attraction`은 화면에서 `🎯 추구미 키워드`로 표시하며 최대 1개다. 개인 추천 입력이므로 타인의 공개 카드에는 표시하지 않는다.
 
@@ -66,6 +67,8 @@
 - 추구미 키워드는 성별별 구조화 후보 중 최대 1개
 - 대화 배지는 최대 3개이며 공개 카드에서 누르면 설명 바텀시트 표시
 - 추구미는 추천 점수에만 쓰고 카드에 노출하지 않음
+- 카드 앞면은 출생연도와 최대 3개 관심사를 표시하며, 뒷면은 주제 최대 5개와 성향 태그를 가변 pill로 표시
+- 뒷면 중앙 콘텐츠만 세로 스크롤되며, 뒷면에서는 하단 `앞면 보기` 버튼으로만 되돌아감
 
 ## 9. 활성 채팅 슬롯 BM 구현 상태
 
@@ -81,7 +84,7 @@
 
 ## 11. 최근 수정한 주요 파일
 
-`app/page.tsx`, `app/globals.css`, `types/profile.ts`, `components/app/MobileAppShell.tsx`, `components/home/*`, `components/chat/ChatHub.tsx`, `components/profile/MyProfile.tsx`, `components/profile/ProfileSignature.tsx`, `components/profile/ProfileTraitsWizard.tsx`, `data/demo-profiles.ts`, `HANDOFF.md`.
+`app/globals.css`, `components/home/ProfileCard.tsx`, `components/profile/MyProfile.tsx`, `public/assets/meal-card-logo.svg`, `types/profile.ts`, `HANDOFF.md`.
 
 ## 12. 현재 알고 있는 버그/문제
 
@@ -92,6 +95,7 @@
 - 실제 메시지 채팅방이 없고 피드는 플레이스홀더다.
 - MBTI 입력 UI가 없어 기존 프로필에서는 비어 있을 수 있다.
 - 실제 모바일 기기·스크린리더·다중 브라우저 QA는 아직 제한적이다.
+- 카드의 SVG 로고와 프로필/서명 이미지는 일반 `img`를 사용해 ESLint 이미지 최적화 경고가 남아 있다.
 
 ## 13. 다음 작업 후보
 

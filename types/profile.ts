@@ -17,7 +17,7 @@ export type Profile = {
   smoking: "non-smoker" | "smoker" | "";
   selfAppearanceTraits: string[];
   signature: string;
-  cardTheme: "coral" | "sage" | "navy";
+  cardTheme: "coral" | "crimson" | "cream" | "navy" | "lavender" | "mono" | "sage";
   tags: ProfileTags;
 };
 

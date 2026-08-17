@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 164 74" role="img" aria-labelledby="title">
+  <title id="title">잘되면 밥한끼</title>
+  <path fill="currentColor" d="M17 12C43-3 119 0 146 15c22 13 18 37-8 47-31 12-101 9-124-8C-5 40-3 23 17 12Z"/>
+  <g fill="#fff">
+    <path d="M24 20h5v7h7v5h-7v7h-5v-7h-7v-5h7zM137 23h4v5h5v4h-5v5h-4v-5h-5v-4h5z"/>
+    <text x="48" y="29" font-family="Arial, sans-serif" font-size="14" font-weight="800">잘되면</text>
+    <text x="48" y="49" font-family="Arial, sans-serif" font-size="17" font-weight="900">밥한끼</text>
+  </g>
+</svg>

@@ -41,3 +41,16 @@ test("page delegates UI and storage responsibilities", async () => {
   assert.match(page, /clearAccount\(\)/);
   assert.doesNotMatch(page, /localStorage/);
 });
+
+test("profile card keeps the final front and back interaction contract", async () => {
+  const card = await readFile(new URL("../components/home/ProfileCard.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(card, /PROFILE CARD/);
+  assert.match(card, /PROFILE NOTE/);
+  assert.match(card, /YEAR OF BIRTH/);
+  assert.match(card, /앞면 보기/);
+  assert.doesNotMatch(card, /NO\./);
+  assert.match(css, /height:clamp\(680px,180vw,760px\)/);
+  assert.match(css, /overflow-y:auto;overflow-x:hidden/);
+  assert.match(css, /\.adaptive-pill/);
+});
